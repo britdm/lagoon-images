@@ -29,7 +29,7 @@ COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/wait-for
 COPY --from=commons /sbin/tini /sbin/
 COPY --from=commons /home /home
 
-# metrichealthcheck files
+# Copy metrichealthcheck files
 COPY --from=healthcheckbuilder /healthz-php /healthz-php
 
 # Copy pod-metrics-server file
