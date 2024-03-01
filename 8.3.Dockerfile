@@ -5,6 +5,14 @@ FROM composer:latest as healthcheckbuilder
 
 RUN composer create-project --no-dev amazeeio/healthz-php /healthz-php v0.0.6
 
+FROM golang:alpine as podmetricsserverbuild
+
+COPY pod-metrics /pod-metrics/
+
+RUN cd pod-metrics \ 
+    && go mod download \
+    && go build -o ./pod-metrics-server
+
 FROM php:8.3.3-fpm-alpine3.18
 
 LABEL org.opencontainers.image.authors="The Lagoon Authors" maintainer="The Lagoon Authors"
@@ -21,8 +29,11 @@ COPY --from=commons /bin/fix-permissions /bin/ep /bin/docker-sleep /bin/wait-for
 COPY --from=commons /sbin/tini /sbin/
 COPY --from=commons /home /home
 
-# Copy healthcheck files
+# metrichealthcheck files
 COPY --from=healthcheckbuilder /healthz-php /healthz-php
+
+# Copy pod-metrics-server file
+COPY --from=podmetricsserverbuild /pod-metrics/pod-metrics-server 
 
 RUN fix-permissions /etc/passwd \
     && mkdir -p /home
